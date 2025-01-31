@@ -19,33 +19,47 @@ const Home = (props) => {
      if (sliderRef.current) {
        sliderRef.current.scrollLeft += 500;
 
-       // Check if we are at the end
+       // Delay checking the end condition after scrolling
        setTimeout(() => {
-         const isEnd =
-           sliderRef.current.scrollLeft + sliderRef.current.clientWidth >=
-           sliderRef.current.scrollWidth;
-         setIsEnd(isEnd);
-       }, 300); // Add a slight delay to allow scrolling
+         checkScrollEnd(sliderRef, setIsEnd);
+       }, 300);
      }
    };
 
-   useEffect(() => {
-     if (movieSliderRef.current) {
-       setIsEndMovies(
-         movieSliderRef.current.scrollLeft +
-           movieSliderRef.current.clientWidth >=
-           movieSliderRef.current.scrollWidth
-       );
+   const checkScrollEnd = (sliderRef, setIsEnd) => {
+     if (sliderRef.current) {
+       const isEnd =
+         sliderRef.current.scrollLeft + sliderRef.current.clientWidth >=
+         sliderRef.current.scrollWidth - 5; // Added slight margin to avoid float rounding errors
+       setIsEnd(isEnd);
      }
+   };
 
-     if (seriesSliderRef.current) {
-       setIsEndSeries(
-         seriesSliderRef.current.scrollLeft +
-           seriesSliderRef.current.clientWidth >=
-           seriesSliderRef.current.scrollWidth
-       );
+   // Attach event listeners to update isEnd dynamically
+   useEffect(() => {
+     const movieSlider = movieSliderRef.current;
+     const seriesSlider = seriesSliderRef.current;
+
+     if (movieSlider) {
+       const handleScroll = () =>
+         checkScrollEnd(movieSliderRef, setIsEndMovies);
+       movieSlider.addEventListener("scroll", handleScroll);
+       checkScrollEnd(movieSliderRef, setIsEndMovies); // Initial check
+       return () => movieSlider.removeEventListener("scroll", handleScroll);
      }
-   }, [movies, series]);
+   }, [movies]);
+
+   useEffect(() => {
+     const seriesSlider = seriesSliderRef.current;
+     if (seriesSlider) {
+       const handleScroll = () =>
+         checkScrollEnd(seriesSliderRef, setIsEndSeries);
+       seriesSlider.addEventListener("scroll", handleScroll);
+       checkScrollEnd(seriesSliderRef, setIsEndSeries); // Initial check
+       return () => seriesSlider.removeEventListener("scroll", handleScroll);
+     }
+   }, [series]);
+
 
    const handleMovieClick = (movie) => {
     console.log("MovieClicked", movie);
